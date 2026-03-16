@@ -1,16 +1,51 @@
-# React + Vite
+## Location Check-in
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Project ini akan:
 
-Currently, two official plugins are available:
+- Mengambil lokasi pengunjung berdasarkan IP menggunakan `https://ipapi.co/json/`
+- Menyimpan data tersebut ke tabel Supabase `location_logs`
+- Menyimpan juga informasi dari URL path yang dikunjungi (mis. `/google`, `/youtube`)
+- Setelah penyimpanan berhasil, mengarahkan pengunjung ke tujuan (Google, YouTube, dll.)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Environment variables
 
-## React Compiler
+Buat file `.env` di root project dengan isi:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+VITE_SUPABASE_URL=URL_SUPABASE_ANDA
+VITE_SUPABASE_ANON_KEY=ANON_KEY_SUPABASE_ANDA
+```
 
-## Expanding the ESLint configuration
+### SQL: Membuat tabel Supabase
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Jalankan SQL berikut di Supabase (menu **SQL** → **New query**) untuk membuat tabel `location_logs` yang sesuai dengan aplikasi ini:
+
+```sql
+create table if not exists public.location_logs (
+  id            uuid primary key default gen_random_uuid(),
+  source_path   text, -- contoh: "/google", "/youtube"
+  source_slug   text, -- contoh: "google", "youtube", "root"
+  ip            text,
+  city          text,
+  region        text,
+  country       text,
+  postal        text,
+  latitude      text,
+  longitude     text,
+  timezone      text,
+  isp           text,
+  user_agent    text,
+  visited_at    timestamptz default now()
+);
+
+-- Optional: index untuk mempercepat query berdasarkan waktu kunjungan
+create index if not exists idx_location_logs_visited_at
+  on public.location_logs (visited_at desc);
+
+-- Jika tabel sudah terlanjur ada tanpa kolom source_path/source_slug,
+-- jalankan perintah berikut sekali saja:
+-- alter table public.location_logs add column if not exists source_path text;
+-- alter table public.location_logs add column if not exists source_slug text;
+```
+
+Jika Anda ingin menambahkan kolom lain, sesuaikan juga payload insert di `src/App.jsx`.
